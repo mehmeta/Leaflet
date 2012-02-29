@@ -192,6 +192,11 @@ var deps = {
 		desc: 'Polyline and polygon editing.'
 	},
 
+	PolyDraw: {
+		src: ['layer/vector/Polyline.Draw.js'],
+		deps: ['PolyEdit'],
+		desc: 'Polyline and polygon drawing with mouse.'
+	},
 
 	ControlZoom: {
 		src: ['control/Control.js',
