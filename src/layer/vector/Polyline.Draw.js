@@ -32,12 +32,7 @@ L.Handler.PolyDraw = L.Handler.PolyEdit.extend({
 		// Last marker in the chain is the marker we use to draw on mousemove event, therefore remove it since we're stopping hand-drawing
 		this._poly.spliceLatLngs(this._poly._latlngs.length - 1, 1);
 		this.disable();
-		// Leave the object in an editable state when we finish drawing
-		if (!this._poly.editing) {
-			this._poly.editing = new L.Handler.PolyEdit(this._poly);
-		}
-		this._poly.editing.enable();
-		
+		this._poly.fire('drawend');
 	},
 	_onMousemove: function (e) {
 		this._poly.spliceLatLngs(this._poly._latlngs.length - 1, 1, e.latlng);
