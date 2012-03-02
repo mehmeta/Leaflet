@@ -26,8 +26,6 @@ L.Handler.PolyEdit = L.Handler.extend({
 			delete this._markerGroup;
 			delete this._markers;
 		}
-		delete this._markerGroup;
-		delete this._markers;
 	},
 
 	updateMarkers: function () {
