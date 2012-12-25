@@ -1,4 +1,9 @@
+/*
+ * L.TileLayer.WMS is used for putting WMS tile layers on the map.
+ */
+
 L.TileLayer.WMS = L.TileLayer.extend({
+
 	defaultWmsParams: {
 		service: 'WMS',
 		request: 'GetMap',
@@ -10,10 +15,16 @@ L.TileLayer.WMS = L.TileLayer.extend({
 	},
 
 	initialize: function (url, options) { // (String, Object)
+
 		this._url = url;
 
-		var wmsParams = L.Util.extend({}, this.defaultWmsParams);
-		wmsParams.width = wmsParams.height = this.options.tileSize;
+		var wmsParams = L.extend({}, this.defaultWmsParams);
+
+		if (options.detectRetina && L.Browser.retina) {
+			wmsParams.width = wmsParams.height = this.options.tileSize * 2;
+		} else {
+			wmsParams.width = wmsParams.height = this.options.tileSize;
+		}
 
 		for (var i in options) {
 			// all keys that are not TileLayer options go to WMS params
@@ -24,33 +35,50 @@ L.TileLayer.WMS = L.TileLayer.extend({
 
 		this.wmsParams = wmsParams;
 
-		L.Util.setOptions(this, options);
+		L.setOptions(this, options);
 	},
 
-	onAdd: function (map, insertAtTheBottom) {
+	onAdd: function (map) {
+
 		var projectionKey = parseFloat(this.wmsParams.version) >= 1.3 ? 'crs' : 'srs';
 		this.wmsParams[projectionKey] = map.options.crs.code;
 
-		L.TileLayer.prototype.onAdd.call(this, map, insertAtTheBottom);
+		L.TileLayer.prototype.onAdd.call(this, map);
 	},
 
 	getTileUrl: function (tilePoint, zoom) { // (Point, Number) -> String
+
+		this._adjustTilePoint(tilePoint);
+
 		var map = this._map,
-			crs = map.options.crs,
+		    crs = map.options.crs,
+		    tileSize = this.options.tileSize,
 
-			tileSize = this.options.tileSize,
+		    nwPoint = tilePoint.multiplyBy(tileSize),
+		    sePoint = nwPoint.add(new L.Point(tileSize, tileSize)),
 
-			nwPoint = tilePoint.multiplyBy(tileSize),
-			sePoint = nwPoint.add(new L.Point(tileSize, tileSize)),
+		    nw = crs.project(map.unproject(nwPoint, zoom)),
+		    se = crs.project(map.unproject(sePoint, zoom)),
 
-			nwMap = map.unproject(nwPoint, zoom, true),
-			seMap = map.unproject(sePoint, zoom, true),
+		    bbox = [nw.x, se.y, se.x, nw.y].join(','),
 
-			nw = crs.project(nwMap),
-			se = crs.project(seMap),
+		    url = L.Util.template(this._url, {s: this._getSubdomain(tilePoint)});
 
-			bbox = [nw.x, se.y, se.x, nw.y].join(',');
+		return url + L.Util.getParamString(this.wmsParams) + "&bbox=" + bbox;
+	},
 
-		return this._url + L.Util.getParamString(this.wmsParams) + "&bbox=" + bbox;
+	setParams: function (params, noRedraw) {
+
+		L.extend(this.wmsParams, params);
+
+		if (!noRedraw) {
+			this.redraw();
+		}
+
+		return this;
 	}
 });
+
+L.tileLayer.wms = function (url, options) {
+	return new L.TileLayer.WMS(url, options);
+};

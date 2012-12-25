@@ -1,6 +1,10 @@
 /*
- * L.Handler.DoubleClickZoom is used internally by L.Map to add double-click zooming.
+ * L.Handler.DoubleClickZoom is used to handle double-click zoom on the map, enabled by default.
  */
+
+L.Map.mergeOptions({
+	doubleClickZoom: true
+});
 
 L.Map.DoubleClickZoom = L.Handler.extend({
 	addHooks: function () {
@@ -15,3 +19,5 @@ L.Map.DoubleClickZoom = L.Handler.extend({
 		this.setView(e.latlng, this._zoom + 1);
 	}
 });
+
+L.Map.addInitHook('addHandler', 'doubleClickZoom', L.Map.DoubleClickZoom);
